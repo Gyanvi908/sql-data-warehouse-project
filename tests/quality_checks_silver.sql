@@ -1,199 +1,449 @@
--- quality checks silver 
+/*
+================================================================================
+Silver Layer - Data Quality Checks
+================================================================================
 
---crm_cust_info
---Check for nulls or duplicates in primary key
--- expectation : No Result
+Purpose:
+    This script performs data quality and validation checks on the Bronze and
+    Silver layer tables to ensure that the data is clean, standardized,
+    consistent, and ready for downstream analytics.
+
+Validation Areas:
+    - Primary key nulls and duplicates
+    - Unwanted spaces and hidden characters
+    - Data standardization and consistency
+    - Invalid and out-of-range dates
+    - Negative or missing numeric values
+    - Referential integrity between tables
+    - Business rule validation
+    - Consistency between related numerical fields
+
+Expected Result:
+    Most validation queries should return NO ROWS when the data quality rules
+    are satisfied.
+
+================================================================================
+*/
+
+
+/*
+================================================================================
+1. CRM CUSTOMER INFORMATION - BRONZE LAYER
+================================================================================
+*/
+
+
+-- ---------------------------------------------------------------------------
+-- Check for NULLs or duplicate customer IDs
+-- Expectation: No results
+-- Purpose:
+--     The customer ID should be unique and should not contain NULL values.
+-- ---------------------------------------------------------------------------
 
 SELECT cst_id,
-count(*)
-from bronze.crm_cust_info
-group by cst_id 
-having count(*) > 1 or cst_id is NULL
+       COUNT(*) AS record_count
+FROM bronze.crm_cust_info
+GROUP BY cst_id
+HAVING COUNT(*) > 1
+    OR cst_id IS NULL;
 
 
+-- ---------------------------------------------------------------------------
+-- Check for unwanted leading or trailing spaces
+-- Expectation: No results
+-- Purpose:
+--     Customer first names should not contain unnecessary spaces.
+-- ---------------------------------------------------------------------------
 
--- check for unwanted spaces
--- Expectation : No Results
-
-select cst_firstname
-from bronze.crm_cust_info 
-where cst_firstname  != TRIM(cst_firstname )
+SELECT cst_firstname
+FROM bronze.crm_cust_info
+WHERE cst_firstname != TRIM(cst_firstname);
 
 
--- Data Standardization & Consistency
-Select distinct cst_gndr
-from bronze.crm_cust_info 
+-- ---------------------------------------------------------------------------
+-- Check gender value standardization
+-- Expectation:
+--     Values may contain variations such as F/M or Female/Male in Bronze.
+-- Purpose:
+--     Identify inconsistent gender values before standardization.
+-- ---------------------------------------------------------------------------
 
---Check for nulls or duplicates in primary key
--- expectation : No Result
+SELECT DISTINCT cst_gndr
+FROM bronze.crm_cust_info;
+
+
+/*
+================================================================================
+2. CRM CUSTOMER INFORMATION - SILVER LAYER
+================================================================================
+*/
+
+
+-- ---------------------------------------------------------------------------
+-- Check for NULLs or duplicate customer IDs
+-- Expectation: No results
+-- Purpose:
+--     Verify that the Silver transformation preserved customer ID uniqueness
+--     and removed NULL primary key values.
+-- ---------------------------------------------------------------------------
 
 SELECT cst_id,
-count(*)
-from silver.crm_cust_info
-group by cst_id 
-having count(*) > 1 or cst_id is NULL
+       COUNT(*) AS record_count
+FROM silver.crm_cust_info
+GROUP BY cst_id
+HAVING COUNT(*) > 1
+    OR cst_id IS NULL;
 
 
+-- ---------------------------------------------------------------------------
+-- Check for unwanted leading or trailing spaces
+-- Expectation: No results
+-- Purpose:
+--     Verify that customer names were properly trimmed during transformation.
+-- ---------------------------------------------------------------------------
 
--- check for unwanted spaces
--- Expectation : No Results
-
-select cst_firstname
-from silver.crm_cust_info 
-where cst_firstname  != TRIM(cst_firstname )
-
-
--- Data Standardization & Consistency
-Select distinct cst_gndr
-from silver.crm_cust_info 
-
-SELECT * FROM silver.crm_cust_info
+SELECT cst_firstname
+FROM silver.crm_cust_info
+WHERE cst_firstname != TRIM(cst_firstname);
 
 
---Check for unwanted spaces 
---Expectation : No results
+-- ---------------------------------------------------------------------------
+-- Check gender standardization
+-- Expectation:
+--     Standardized values should be Female, Male, or n/a.
+-- ---------------------------------------------------------------------------
+
+SELECT DISTINCT cst_gndr
+FROM silver.crm_cust_info;
+
+
+-- ---------------------------------------------------------------------------
+-- Review Silver customer data
+-- Purpose:
+--     Perform a general inspection of the transformed customer records.
+-- ---------------------------------------------------------------------------
+
+SELECT *
+FROM silver.crm_cust_info;
+
+
+/*
+================================================================================
+3. CRM PRODUCT INFORMATION - BRONZE LAYER
+================================================================================
+*/
+
+
+-- ---------------------------------------------------------------------------
+-- Check for unwanted spaces in product names
+-- Expectation: No results
+-- Purpose:
+--     Product names should not contain unnecessary leading or trailing spaces.
+-- ---------------------------------------------------------------------------
+
 SELECT prd_nm
-from bronze.crm_prd_info
-WHERE prd_nm != TRIM(prd_nm)
+FROM bronze.crm_prd_info
+WHERE prd_nm != TRIM(prd_nm);
 
--- Check for Nulls or Negative Numbers 
---Expectation : No results
+
+-- ---------------------------------------------------------------------------
+-- Check for NULL or negative product costs
+-- Expectation: No results
+-- Purpose:
+--     Product cost should be a valid non-negative numeric value.
+-- ---------------------------------------------------------------------------
+
 SELECT prd_cost
 FROM bronze.crm_prd_info
-WHERE prd_cost < 0 or prd_cost IS NULL 
+WHERE prd_cost < 0
+   OR prd_cost IS NULL;
 
 
--- Data Standardization & Consistency
+-- ---------------------------------------------------------------------------
+-- Check product line standardization
+-- Expectation:
+--     Identify all distinct product line values before standardization.
+-- ---------------------------------------------------------------------------
+
 SELECT DISTINCT prd_line
+FROM bronze.crm_prd_info;
+
+
+-- ---------------------------------------------------------------------------
+-- Check for invalid product date ranges
+-- Expectation: No results
+-- Purpose:
+--     Product end date should not occur before the product start date.
+-- ---------------------------------------------------------------------------
+
+SELECT *
 FROM bronze.crm_prd_info
+WHERE prd_end_dt < prd_start_dt;
 
 
--- check for invalid date orders
-SELECT * 
-FROM bronze.crm_prd_info 
-WHERE prd_end_dt < prd_start_dt 
---crm_prd_info
+/*
+================================================================================
+4. CRM PRODUCT INFORMATION - SILVER LAYER
+================================================================================
+*/
 
---clean and load crm_prd_info
 
+-- ---------------------------------------------------------------------------
+-- Check for NULLs or duplicate product IDs
+-- Expectation: No results
+-- Purpose:
+--     Product ID should uniquely identify each product record.
+-- ---------------------------------------------------------------------------
 
 SELECT prd_id,
-count(*)
-from silver.crm_prd_info
-group by prd_id 
-having count(*) > 1 or prd_id is NULL
+       COUNT(*) AS record_count
+FROM silver.crm_prd_info
+GROUP BY prd_id
+HAVING COUNT(*) > 1
+    OR prd_id IS NULL;
 
+
+-- ---------------------------------------------------------------------------
+-- Check product category referential integrity
+-- Expectation: No results
+-- Purpose:
+--     Every product category derived from the product key should exist in
+--     the ERP product category table.
+-- ---------------------------------------------------------------------------
 
 SELECT
-  prd_id,
-  prd_key,
-  REPLACE(SUBSTRING(prd_key, 1, 5), '-', '_') AS cat_id,
-  prd_nm,
-  prd_cost,
-  prd_line,
-  prd_start_dt,
-  prd_end_dt
+    prd_id,
+    prd_key,
+    REPLACE(SUBSTRING(prd_key, 1, 5), '-', '_') AS cat_id,
+    prd_nm,
+    prd_cost,
+    prd_line,
+    prd_start_dt,
+    prd_end_dt
 FROM bronze.crm_prd_info
 WHERE REPLACE(SUBSTRING(prd_key, 1, 5), '-', '_') NOT IN
-(SELECT DISTINCT  id FROM  bronze.erp_px_cat_g1v2)
+(
+    SELECT DISTINCT id
+    FROM bronze.erp_px_cat_g1v2
+);
 
 
---crm_sales_details
---Check for Invalid Dates
+/*
+================================================================================
+5. CRM SALES DETAILS
+================================================================================
+*/
 
-SELECT 
-NULLIF(sls_order_dt, 0) sls_order_dt
+
+-- ---------------------------------------------------------------------------
+-- Check for invalid order dates
+-- Expectation: No results
+-- Purpose:
+--     Validate that order dates are properly formatted and fall within the
+--     expected business date range.
+-- ---------------------------------------------------------------------------
+
+SELECT
+    NULLIF(sls_order_dt, 0) AS sls_order_dt
 FROM bronze.crm_sales_details
-where sls_order_dt <= 0 
-OR LEN(sls_order_dt) != 8 
-OR sls_order_dt > 20500101
-OR sls_order_dt < 19000101
+WHERE sls_order_dt <= 0
+   OR LEN(sls_order_dt) != 8
+   OR sls_order_dt > 20500101
+   OR sls_order_dt < 19000101;
 
-SELECT 
-NULLIF(sls_ship_dt , 0) sls_ship_dt
+
+-- ---------------------------------------------------------------------------
+-- Check for invalid shipment dates
+-- Expectation: No results
+-- Purpose:
+--     Validate that shipment dates are properly formatted and within the
+--     expected date range.
+-- ---------------------------------------------------------------------------
+
+SELECT
+    NULLIF(sls_ship_dt, 0) AS sls_ship_dt
 FROM bronze.crm_sales_details
-where sls_ship_dt <= 0 
-OR LEN(sls_ship_dt) != 8 
-OR sls_ship_dt > 20500101
-OR sls_ship_dt < 19000101
+WHERE sls_ship_dt <= 0
+   OR LEN(sls_ship_dt) != 8
+   OR sls_ship_dt > 20500101
+   OR sls_ship_dt < 19000101;
 
-SELECT 
-NULLIF(sls_due_dt , 0) sls_due_dt
+
+-- ---------------------------------------------------------------------------
+-- Check for invalid due dates
+-- Expectation: No results
+-- Purpose:
+--     Validate that due dates are properly formatted and within the expected
+--     business date range.
+-- ---------------------------------------------------------------------------
+
+SELECT
+    NULLIF(sls_due_dt, 0) AS sls_due_dt
 FROM bronze.crm_sales_details
-where sls_due_dt <= 0 
-OR LEN(sls_due_dt) != 8 
-OR sls_due_dt > 20500101
-OR sls_due_dt < 19000101
+WHERE sls_due_dt <= 0
+   OR LEN(sls_due_dt) != 8
+   OR sls_due_dt > 20500101
+   OR sls_due_dt < 19000101;
 
--- Check for Invalid Date Orders
-SELECT * FROM bronze.crm_sales_details
-WHERE sls_order_dt > sls_ship_dt OR sls_order_dt > sls_due_dt 
 
-SELECT * FROM silver.crm_sales_details
-WHERE sls_order_dt > sls_ship_dt OR sls_order_dt > sls_due_dt 
+-- ---------------------------------------------------------------------------
+-- Check chronological order of sales dates
+-- Expectation: No results
+-- Business Rule:
+--     Order Date <= Ship Date
+--     Order Date <= Due Date
+-- ---------------------------------------------------------------------------
 
--- Check Data Consistency : Between Sales, Quantity, and Price
--- >> Sales = Quantity * Price
--- >> Values must not be NULL, zero, or negative
+SELECT *
+FROM bronze.crm_sales_details
+WHERE sls_order_dt > sls_ship_dt
+   OR sls_order_dt > sls_due_dt;
+
+
+-- ---------------------------------------------------------------------------
+-- Validate chronological order after Silver transformation
+-- Expectation: No results
+-- Purpose:
+--     Confirm that date relationships remain valid after transformation.
+-- ---------------------------------------------------------------------------
+
+SELECT *
+FROM silver.crm_sales_details
+WHERE sls_order_dt > sls_ship_dt
+   OR sls_order_dt > sls_due_dt;
+
+
+-- ---------------------------------------------------------------------------
+-- Check consistency between Sales, Quantity, and Price
+-- Expectation: No results after correction
+-- Business Rule:
+--     Sales = Quantity × Price
+--
+-- Additional rules:
+--     - Sales should not be NULL or negative.
+--     - Price should not be NULL or negative.
+--     - Quantity should represent the number of units sold.
+-- ---------------------------------------------------------------------------
 
 SELECT DISTINCT
-sls_sales AS old_sls_sales,
-sls_quantity, 
-sls_price as old_sls_price,
-CASE WHEN sls_sales IS NULL OR sls_sales <=0 OR sls_sales != sls_quantity * ABS(sls_price)
+    sls_sales AS old_sls_sales,
+    sls_quantity,
+    sls_price AS old_sls_price,
+
+    CASE
+        WHEN sls_sales IS NULL
+             OR sls_sales <= 0
+             OR sls_sales != sls_quantity * ABS(sls_price)
         THEN sls_quantity * ABS(sls_price)
-     ELSE sls_sales
-END AS sls_sales,
+        ELSE sls_sales
+    END AS sls_sales,
 
-CASE WHEN sls_price IS NULL OR sls_price <= 0
+    CASE
+        WHEN sls_price IS NULL
+             OR sls_price <= 0
         THEN sls_sales / NULLIF(sls_quantity, 0)
-     ELSE sls_price
-END AS sls_price
+        ELSE sls_price
+    END AS sls_price
+
 FROM bronze.crm_sales_details
-WHERE sls_sales != sls_quantity * sls_price
+WHERE sls_sales != sls_quantity * sls_price;
 
 
+/*
+================================================================================
+6. ERP CUSTOMER INFORMATION - AZ12
+================================================================================
+*/
 
 
+-- ---------------------------------------------------------------------------
+-- Check customer ID referential integrity
+-- Expectation: No results
+-- Purpose:
+--     After removing the NAS prefix, each ERP customer ID should correspond
+--     to a customer key in the Silver customer table.
+-- ---------------------------------------------------------------------------
 
---erp_cust_az12
+SELECT
+    cid,
+    CASE
+        WHEN cid LIKE 'NAS%'
+            THEN SUBSTRING(cid, 4, LEN(cid))
+        ELSE cid
+    END AS cleaned_cid,
+    bdate,
+    gen
+FROM bronze.erp_cust_az12
+WHERE
+    CASE
+        WHEN cid LIKE 'NAS%'
+            THEN SUBSTRING(cid, 4, LEN(cid))
+        ELSE cid
+    END NOT IN
+    (
+        SELECT DISTINCT cst_key
+        FROM silver.crm_cust_info
+    );
 
 
--- Remove the unwanted column  
-  
-SELECT cid, 
-  CASE WHEN cid LIKE 'NAS%' THEN SUBSTRING(cid, 4, LEN(cid))
-       ELSE cid
- END AS cid,
- bdate,
- gen
- FROM bronze.erp_cust_az12
- WHERE CASE WHEN cid LIKE 'NAS%' THEN SUBSTRING(cid, 4, LEN(cid))
-       ELSE cid 
- END NOT IN (SELECT DISTINCT cst_key FROM silver.crm_cust_info)
- 
+-- ---------------------------------------------------------------------------
+-- Check for out-of-range birth dates in Bronze
+-- Expectation: No results
+-- Purpose:
+--     Identify unrealistic or invalid customer birth dates.
+-- ---------------------------------------------------------------------------
 
- -- Identify Out-Of_range Dates
- 
- SELECT DISTINCT 
- bdate
- FROM bronze.erp_cust_az12
- WHERE bdate < '1924-01-01' OR  bdate > GETDATE()
- 
- SELECT DISTINCT 
- bdate
- FROM silver.erp_cust_az12
- WHERE bdate < '1924-01-01' OR  bdate > GETDATE()
- 
- select * from silver.erp_cust_az12
- 
- -- Data Standardization & Consistency
+SELECT DISTINCT bdate
+FROM bronze.erp_cust_az12
+WHERE bdate < '1924-01-01'
+   OR bdate > GETDATE();
+
+
+-- ---------------------------------------------------------------------------
+-- Check for out-of-range birth dates in Silver
+-- Expectation: No results
+-- Purpose:
+--     Verify that invalid future birth dates were handled during transformation.
+-- ---------------------------------------------------------------------------
+
+SELECT DISTINCT bdate
+FROM silver.erp_cust_az12
+WHERE bdate < '1924-01-01'
+   OR bdate > GETDATE();
+
+
+-- ---------------------------------------------------------------------------
+-- Review Silver ERP customer data
+-- Purpose:
+--     Perform a general inspection of transformed customer records.
+-- ---------------------------------------------------------------------------
+
+SELECT *
+FROM silver.erp_cust_az12;
+
+
+-- ---------------------------------------------------------------------------
+-- Check gender standardization
+-- Expectation:
+--     Standardized values should be Female, Male, or n/a.
+-- Purpose:
+--     Compare the original gender values with the cleaned and normalized
+--     representation.
+-- ---------------------------------------------------------------------------
 
 SELECT DISTINCT
     gen,
 
-    -- Remove hidden characters
-    TRIM(REPLACE(REPLACE(REPLACE(gen, CHAR(13), ''),CHAR(10), ''),CHAR(9), '')) AS cleaned_gen,
+    TRIM(
+        REPLACE(
+            REPLACE(
+                REPLACE(gen, CHAR(13), ''),
+                CHAR(10), ''
+            ),
+            CHAR(9), ''
+        )
+    ) AS cleaned_gen,
+
     CASE
         WHEN UPPER(
             TRIM(
@@ -227,38 +477,108 @@ SELECT DISTINCT
 FROM bronze.erp_cust_az12;
 
 
---erp_loc_a101
+/*
+================================================================================
+7. ERP LOCATION INFORMATION - A101
+================================================================================
+*/
 
---silver 
-SELECT 
-REPLACE(cid, '-', '') cid,
- cntry
-FROM bronze.erp_loc_a101 WHERE REPLACE(cid, '-', '') NOT IN 
-(SELECT cst_key FROM silver.crm_cust_info)
 
--- Data Standardization & Consistency
-SELECT DISTINCT cntry AS old_cntry,
-CASE WHEN TRIM(cntry) = 'DE' THEN 'Germany'
-     WHEN TRIM(cntry) IN ('US', 'USA') THEN 'United States'
-     WHEN TRIM(cntry) = '' OR cntry IS NULL THEN 'n/a'
-     ELSE TRIM(cntry)
-END AS cntry
+-- ---------------------------------------------------------------------------
+-- Check customer ID referential integrity
+-- Expectation: No results
+-- Purpose:
+--     Verify that location records correspond to valid customer keys.
+-- ---------------------------------------------------------------------------
+
+SELECT
+    REPLACE(cid, '-', '') AS cid,
+    cntry
 FROM bronze.erp_loc_a101
-ORDER BY cntry 
+WHERE REPLACE(cid, '-', '') NOT IN
+(
+    SELECT cst_key
+    FROM silver.crm_cust_info
+);
+
+
+-- ---------------------------------------------------------------------------
+-- Check country standardization
+-- Expectation:
+--     Country codes should be transformed into consistent country names.
+-- Purpose:
+--     Review the original and standardized country values.
+-- ---------------------------------------------------------------------------
+
+SELECT DISTINCT
+    cntry AS old_cntry,
+
+    CASE
+        WHEN TRIM(cntry) = 'DE'
+            THEN 'Germany'
+
+        WHEN TRIM(cntry) IN ('US', 'USA')
+            THEN 'United States'
+
+        WHEN TRIM(cntry) = ''
+             OR cntry IS NULL
+            THEN 'n/a'
+
+        ELSE TRIM(cntry)
+    END AS normalized_cntry
+
+FROM bronze.erp_loc_a101
+ORDER BY normalized_cntry;
+
+
+-- ---------------------------------------------------------------------------
+-- Check standardized country values in Silver
+-- Expectation:
+--     Values should be standardized and free from unnecessary spaces.
+-- ---------------------------------------------------------------------------
 
 SELECT DISTINCT cntry
 FROM silver.erp_loc_a101
-ORDER BY cntry 
+ORDER BY cntry;
 
-SELECT * FROM silver.erp_loc_a101 
 
---erp_px_cat_g1v2
+-- ---------------------------------------------------------------------------
+-- Review Silver ERP location data
+-- ---------------------------------------------------------------------------
 
--- Check for unwanted Spaces
-SELECT * FROM bronze.erp_px_cat_g1v2
-WHERE cat != TRIM(cat) OR subcat != TRIM(subcat) OR maintenance != TRIM(maintenance)
+SELECT *
+FROM silver.erp_loc_a101;
 
--- Data Standardization & Consistency
+
+/*
+================================================================================
+8. ERP PRODUCT CATEGORY INFORMATION - G1V2
+================================================================================
+*/
+
+
+-- ---------------------------------------------------------------------------
+-- Check for unwanted spaces
+-- Expectation: No results
+-- Purpose:
+--     Category, subcategory, and maintenance values should not contain
+--     unnecessary leading or trailing spaces.
+-- ---------------------------------------------------------------------------
+
+SELECT *
+FROM bronze.erp_px_cat_g1v2
+WHERE cat != TRIM(cat)
+   OR subcat != TRIM(subcat)
+   OR maintenance != TRIM(maintenance);
+
+
+-- ---------------------------------------------------------------------------
+-- Check maintenance value standardization
+-- Expectation:
+--     Standardized values should be Yes, No, or n/a.
+-- Purpose:
+--     Identify and normalize different representations of maintenance values.
+-- ---------------------------------------------------------------------------
 
 SELECT DISTINCT
     maintenance,
@@ -306,4 +626,9 @@ SELECT DISTINCT
 FROM bronze.erp_px_cat_g1v2;
 
 
-select * from silver.erp_px_cat_g1v2
+-- ---------------------------------------------------------------------------
+-- Review Silver ERP product category data
+-- ---------------------------------------------------------------------------
+
+SELECT *
+FROM silver.erp_px_cat_g1v2;
