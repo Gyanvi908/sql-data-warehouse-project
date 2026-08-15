@@ -1,12 +1,22 @@
-# 🏗️ SQL Data Warehouse & Analytics Engineering Project
+# 🏗️ Enterprise Sales Data Warehouse & Analytics Platform
 
 <p align="center">
-  <img src="docs/data_architecture.png" alt="SQL Data Warehouse Architecture" width="100%">
+  <img src="docs/data_architecture.png" alt="High Level Data Warehouse Architecture" width="100%">
 </p>
 
-<h3 align="center">
-From Raw CRM & ERP Data → Clean Data → Integrated Data → Business-Ready Analytics
-</h3>
+<h1 align="center">
+  From Raw Operational Data to Business-Ready Analytics
+</h1>
+
+<p align="center">
+  <strong>
+    An end-to-end SQL Server Data Warehouse project demonstrating
+    data ingestion, ETL, data cleansing, standardization, integration,
+    data quality engineering, dimensional modeling, and analytical data serving.
+  </strong>
+</p>
+
+<br>
 
 <p align="center">
 
@@ -14,85 +24,101 @@ From Raw CRM & ERP Data → Clean Data → Integrated Data → Business-Ready An
 
 ![T-SQL](https://img.shields.io/badge/T--SQL-ETL-blue?style=for-the-badge)
 
-![Medallion Architecture](https://img.shields.io/badge/Architecture-Medallion-orange?style=for-the-badge)
+![Architecture](https://img.shields.io/badge/Architecture-Medallion-orange?style=for-the-badge)
 
-![Star Schema](https://img.shields.io/badge/Model-Star%20Schema-yellow?style=for-the-badge)
+![Data Model](https://img.shields.io/badge/Data%20Model-Star%20Schema-yellow?style=for-the-badge)
 
-![Data Engineering](https://img.shields.io/badge/Domain-Data%20Engineering-success?style=for-the-badge)
+![Data Quality](https://img.shields.io/badge/Data%20Quality-Validated-success?style=for-the-badge)
+
+![Git](https://img.shields.io/badge/Version%20Control-Git-black?style=for-the-badge&logo=git)
+
+![GitHub](https://img.shields.io/badge/Repository-GitHub-black?style=for-the-badge&logo=github)
 
 </p>
 
 ---
 
-# 📌 Project Overview
+# 📌 Table of Contents
 
-This project implements an **end-to-end SQL Server Data Warehouse** that transforms raw operational data from **CRM and ERP source systems** into a clean, standardized, integrated, and business-ready analytical model.
-
-The warehouse follows a **Medallion Architecture** consisting of:
-
-- 🥉 **Bronze Layer** — Raw source data
-- 🥈 **Silver Layer** — Cleaned, standardized, and enriched data
-- 🥇 **Gold Layer** — Business-ready analytical views
-
-The final Gold layer follows a **Star Schema** containing customer and product dimensions surrounding a central sales fact table.
-
-The project is designed to demonstrate practical **Data Engineering, ETL, Data Quality, Data Integration, and Data Modeling** concepts using SQL Server.
+- [🌟 Project Overview](#-project-overview)
+- [🎯 Business Problem](#-business-problem)
+- [💡 Project Objective](#-project-objective)
+- [🏛️ Architecture](#️-architecture)
+- [🔄 End-to-End Data Flow](#-end-to-end-data-flow)
+- [📥 Source Systems](#-source-systems)
+- [🥉 Bronze Layer](#-bronze-layer)
+- [🥈 Silver Layer](#-silver-layer)
+- [🥇 Gold Layer](#-gold-layer)
+- [🔗 CRM and ERP Integration](#-crm-and-erp-integration)
+- [🧹 Data Quality Engineering](#-data-quality-engineering)
+- [⭐ Star Schema](#-star-schema)
+- [👥 Customer Dimension](#-customer-dimension)
+- [📦 Product Dimension](#-product-dimension)
+- [💰 Sales Fact](#-sales-fact)
+- [🧬 Data Lineage](#-data-lineage)
+- [⚙️ ETL Pipeline](#️-etl-pipeline)
+- [📊 Data Validation Results](#-data-validation-results)
+- [📚 Project Documentation](#-project-documentation)
+- [📁 Repository Structure](#-repository-structure)
+- [🧰 Technology Stack](#-technology-stack)
+- [🚀 How to Run the Project](#-how-to-run-the-project)
+- [🔍 Analytical Capabilities](#-analytical-capabilities)
+- [📈 BI and Reporting Opportunities](#-bi-and-reporting-opportunities)
+- [🧠 Engineering Decisions](#-engineering-decisions)
+- [🛡️ Reliability and Error Handling](#️-reliability-and-error-handling)
+- [⚡ Performance Considerations](#-performance-considerations)
+- [🔮 Future Enhancements](#-future-enhancements)
+- [🏆 Project Outcomes](#-project-outcomes)
+- [📝 Learning Outcomes](#-learning-outcomes)
+- [✅ Project Completion](#-project-completion)
+- [👤 Author](#-author)
 
 ---
 
-# 🎯 Project Objectives
+# 🌟 Project Overview
 
-The main objective is to build a reliable analytical data warehouse from multiple operational sources.
+Modern organizations rarely have all of their information stored in one system.
 
-### Key objectives
+Customer information may exist in a CRM.
 
-- Ingest raw CRM and ERP data into SQL Server
-- Preserve source data in a Bronze layer
-- Clean and standardize inconsistent source data
-- Remove duplicates and invalid records
-- Handle missing and invalid values
-- Normalize identifiers and categorical values
-- Integrate information from CRM and ERP systems
-- Apply business rules and derived logic
-- Build analytical dimensions and fact tables
-- Implement a Star Schema
-- Validate data quality at multiple stages
-- Document data lineage and architecture
-- Provide a foundation for BI and analytical workloads
+Product information may exist in a product management system.
 
----
+Geographic information may exist in an ERP.
 
-# 🧭 End-to-End Data Journey
+Sales transactions may come from another operational system.
 
-```mermaid
-flowchart LR
+The challenge is therefore not simply storing data.
 
-    A["📁 CRM Files"]
-    B["📁 ERP Files"]
+The real challenge is:
 
-    A --> C["🥉 Bronze Layer"]
-    B --> C
+> **How do we transform fragmented operational data into reliable, consistent, integrated, and business-ready analytical information?**
 
-    C --> D["🧹 Cleansing"]
+This project addresses that problem by building an **end-to-end SQL Server Data Warehouse** using a layered architecture.
 
-    D --> E["🏷️ Standardization"]
+The project integrates data originating from:
 
-    E --> F["🔄 Normalization"]
+- CRM systems
+- ERP systems
 
-    F --> G["🔗 Data Integration"]
+and processes it through:
 
-    G --> H["💡 Business Rules"]
-
-    H --> I["🥈 Silver Layer"]
-
-    I --> J["👥 Customer Dimension"]
-    I --> K["📦 Product Dimension"]
-    I --> L["💰 Sales Fact"]
-
-    J --> M["🥇 Gold Layer"]
-    K --> M
-    L --> M
-
-    M --> N["📊 BI & Reporting"]
-    M --> O["🔎 Ad-Hoc Analytics"]
-    M --> P["🤖 Advanced Analytics"]
+```text
+RAW SOURCE DATA
+       │
+       ▼
+🥉 BRONZE
+Raw / Source-Aligned Data
+       │
+       ▼
+🥈 SILVER
+Cleaned / Standardized / Integrated Data
+       │
+       ▼
+🥇 GOLD
+Business-Ready Analytical Data
+       │
+       ▼
+⭐ STAR SCHEMA
+       │
+       ▼
+BI • Reporting • SQL • Data Science
