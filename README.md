@@ -1,124 +1,189 @@
-# 🏗️ Enterprise Sales Data Warehouse & Analytics Platform
+# 🚀 SQL Data Warehouse & Analytics Project
 
-<p align="center">
-  <img src="docs/data_architecture.png" alt="High Level Data Warehouse Architecture" width="100%">
-</p>
+Welcome to my end-to-end **SQL Data Warehouse and Analytics Project**.
 
-<h1 align="center">
-  From Raw Operational Data to Business-Ready Analytics
-</h1>
+This project demonstrates how raw operational data from **CRM and ERP systems** can be transformed into a clean, integrated, and analytics-ready data warehouse using **SQL Server and T-SQL**.
 
-<p align="center">
-  <strong>
-    An end-to-end SQL Server Data Warehouse project demonstrating
-    data ingestion, ETL, data cleansing, standardization, integration,
-    data quality engineering, dimensional modeling, and analytical data serving.
-  </strong>
-</p>
+The project follows a **Medallion Architecture** consisting of:
 
-<br>
+- 🥉 Bronze Layer — Raw Data
+- 🥈 Silver Layer — Cleaned & Standardized Data
+- 🥇 Gold Layer — Business-Ready Analytical Data
 
-<p align="center">
+The final Gold layer follows a **Star Schema** consisting of customer and product dimensions surrounding a central sales fact table.
 
-![SQL Server](https://img.shields.io/badge/SQL%20Server-Data%20Warehouse-red?style=for-the-badge&logo=microsoftsqlserver)
+The complete pipeline covers:
 
-![T-SQL](https://img.shields.io/badge/T--SQL-ETL-blue?style=for-the-badge)
-
-![Architecture](https://img.shields.io/badge/Architecture-Medallion-orange?style=for-the-badge)
-
-![Data Model](https://img.shields.io/badge/Data%20Model-Star%20Schema-yellow?style=for-the-badge)
-
-![Data Quality](https://img.shields.io/badge/Data%20Quality-Validated-success?style=for-the-badge)
-
-![Git](https://img.shields.io/badge/Version%20Control-Git-black?style=for-the-badge&logo=git)
-
-![GitHub](https://img.shields.io/badge/Repository-GitHub-black?style=for-the-badge&logo=github)
-
-</p>
+> **Data Ingestion → Data Cleansing → Data Standardization → Data Integration → Data Quality → Dimensional Modeling → Analytics**
 
 ---
 
-# 📌 Table of Contents
+# 🏗️ Data Architecture
 
-- [🌟 Project Overview](#-project-overview)
-- [🎯 Business Problem](#-business-problem)
-- [💡 Project Objective](#-project-objective)
-- [🏛️ Architecture](#️-architecture)
-- [🔄 End-to-End Data Flow](#-end-to-end-data-flow)
-- [📥 Source Systems](#-source-systems)
-- [🥉 Bronze Layer](#-bronze-layer)
-- [🥈 Silver Layer](#-silver-layer)
-- [🥇 Gold Layer](#-gold-layer)
-- [🔗 CRM and ERP Integration](#-crm-and-erp-integration)
-- [🧹 Data Quality Engineering](#-data-quality-engineering)
-- [⭐ Star Schema](#-star-schema)
-- [👥 Customer Dimension](#-customer-dimension)
-- [📦 Product Dimension](#-product-dimension)
-- [💰 Sales Fact](#-sales-fact)
-- [🧬 Data Lineage](#-data-lineage)
-- [⚙️ ETL Pipeline](#️-etl-pipeline)
-- [📊 Data Validation Results](#-data-validation-results)
-- [📚 Project Documentation](#-project-documentation)
-- [📁 Repository Structure](#-repository-structure)
-- [🧰 Technology Stack](#-technology-stack)
-- [🚀 How to Run the Project](#-how-to-run-the-project)
-- [🔍 Analytical Capabilities](#-analytical-capabilities)
-- [📈 BI and Reporting Opportunities](#-bi-and-reporting-opportunities)
-- [🧠 Engineering Decisions](#-engineering-decisions)
-- [🛡️ Reliability and Error Handling](#️-reliability-and-error-handling)
-- [⚡ Performance Considerations](#-performance-considerations)
-- [🔮 Future Enhancements](#-future-enhancements)
-- [🏆 Project Outcomes](#-project-outcomes)
-- [📝 Learning Outcomes](#-learning-outcomes)
-- [✅ Project Completion](#-project-completion)
-- [👤 Author](#-author)
+<p align="center">
+  <img src="docs/data_architecture.png" alt="Data Architecture" width="900">
+</p>
+
+The warehouse follows a three-layer Medallion Architecture.
+
+### 🥉 Bronze Layer
+
+The Bronze layer stores the data as it arrives from the source systems.
+
+The objective of this layer is to preserve the original source information and provide a reliable landing zone for downstream processing.
+
+**Sources:**
+
+- CRM
+- ERP
+- CSV files
 
 ---
 
-# 🌟 Project Overview
+### 🥈 Silver Layer
 
-Modern organizations rarely have all of their information stored in one system.
+The Silver layer transforms raw source data into clean and trusted data.
 
-Customer information may exist in a CRM.
+Major transformations include:
 
-Product information may exist in a product management system.
+- Removing unwanted spaces
+- Handling NULL values
+- Standardizing categorical values
+- Cleaning customer identifiers
+- Cleaning product identifiers
+- Validating dates
+- Handling invalid numerical values
+- Removing duplicate customer records
+- Integrating CRM and ERP information
+- Applying business rules
 
-Geographic information may exist in an ERP.
+---
 
-Sales transactions may come from another operational system.
+### 🥇 Gold Layer
 
-The challenge is therefore not simply storing data.
+The Gold layer contains business-ready analytical data.
 
-The real challenge is:
+The final model consists of:
 
-> **How do we transform fragmented operational data into reliable, consistent, integrated, and business-ready analytical information?**
+- `gold.dim_customers`
+- `gold.dim_products`
+- `gold.fact_sales`
 
-This project addresses that problem by building an **end-to-end SQL Server Data Warehouse** using a layered architecture.
+This layer is designed for:
 
-The project integrates data originating from:
+- Reporting
+- Business Intelligence
+- Analytical SQL
+- Dashboard development
+- Future Machine Learning applications
 
-- CRM systems
-- ERP systems
+---
 
-and processes it through:
+# 📖 Project Overview
+
+The project was designed to simulate a real-world enterprise data warehouse where information is distributed across multiple operational systems.
+
+The CRM system provides:
+
+- Customer information
+- Product information
+- Sales transactions
+
+The ERP system provides:
+
+- Additional customer information
+- Customer location
+- Product category information
+
+These sources are independently loaded into the Bronze layer and subsequently transformed and integrated within the Silver layer.
+
+The Gold layer then reorganizes the information into a business-friendly dimensional model.
+
+---
+
+# 🎯 Project Objectives
+
+The primary objectives of this project are:
+
+### 1. Build a Data Warehouse
+
+Create a structured SQL Server data warehouse capable of consolidating CRM and ERP data.
+
+### 2. Develop ETL Pipelines
+
+Build repeatable loading processes for Bronze and Silver layers.
+
+### 3. Improve Data Quality
+
+Identify and resolve:
+
+- Duplicate records
+- NULL values
+- Invalid dates
+- Inconsistent categories
+- Unwanted spaces
+- Invalid numerical values
+- Referential integrity issues
+
+### 4. Integrate Multiple Sources
+
+Combine CRM and ERP data into unified customer and product entities.
+
+### 5. Build an Analytical Data Model
+
+Create a Star Schema optimized for analytical queries.
+
+### 6. Validate the Final Data
+
+Develop dedicated Silver and Gold quality-check scripts.
+
+---
+
+# 🔄 End-to-End Data Flow
+
+<p align="center">
+  <img src="docs/data_flow.png" alt="Data Flow" width="900">
+</p>
+
+The complete data flow is:
 
 ```text
-RAW SOURCE DATA
-       │
-       ▼
-🥉 BRONZE
-Raw / Source-Aligned Data
-       │
-       ▼
-🥈 SILVER
-Cleaned / Standardized / Integrated Data
-       │
-       ▼
-🥇 GOLD
-Business-Ready Analytical Data
-       │
-       ▼
-⭐ STAR SCHEMA
-       │
-       ▼
-BI • Reporting • SQL • Data Science
+CRM Sources ───────┐
+                   │
+                   ▼
+              🥉 BRONZE
+                   │
+                   ▼
+            Data Cleansing
+                   │
+                   ▼
+          Standardization
+                   │
+                   ▼
+             Validation
+                   │
+                   │
+ERP Sources ───────┘
+                   │
+                   ▼
+              🥈 SILVER
+                   │
+                   ▼
+            Data Integration
+                   │
+                   ▼
+             Business Rules
+                   │
+                   ▼
+               🥇 GOLD
+                   │
+          ┌────────┼────────┐
+          ▼        ▼        ▼
+      Customers Products  Sales
+          │        │        │
+          └────────┼────────┘
+                   ▼
+              STAR SCHEMA
+                   │
+                   ▼
+            BI / Analytics
